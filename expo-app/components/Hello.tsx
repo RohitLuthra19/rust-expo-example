@@ -1,0 +1,119 @@
+
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, Image, StyleSheet, ScrollView, Linking, TouchableOpacity } from "react-native";
+
+
+//const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
+
+async function openExternal(url: string) {
+  if (isTauri) {
+    const tauri = (window as any).__TAURI__;
+    console.log("Opening URL in Tauri:", tauri.opener.openUrl(url));
+  } else {
+    Linking.openURL(url);
+  }
+}
+
+export default function Hello() {
+  const [greetMsg, setGreetMsg] = useState("");
+  const [name, setName] = useState("");
+
+  async function greet() {
+    if (isTauri) {
+        const tauri = (window as any).__TAURI__;
+      if (tauri && tauri.core.invoke) {
+        setGreetMsg(await tauri.core.invoke("greet", { name }));
+      } else {
+        setGreetMsg("Tauri API not available.");
+      }
+    } else {
+      setGreetMsg("Tauri API is only available in the desktop app.");
+    }
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Welcome to Expo + Tauri</Text>
+      <View style={styles.row}>
+        <TouchableOpacity onPress={() =>  openExternal("https://expo.dev")}>
+          <Image source={require("@/assets/images/expo-logo.png")} style={styles.logo} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => openExternal("https://tauri.app")}>
+          <Image source={require("@/assets/images/tauri-logo.svg")} style={styles.logo} />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.subtitle}>Click on the Expo and Tauri names to learn more.</Text>
+      <View style={styles.formRow}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter a name..."
+          value={name}
+          onChangeText={setName}
+        />
+        <Button title="Greet" onPress={greet} />
+      </View>
+      <Text style={styles.greetMsg}>{greetMsg}</Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  logo: {
+    width: 48,
+    height: 48,
+    margin: 8,
+  },
+  link: {
+    color: "#007aff",
+    fontWeight: "bold",
+    fontSize: 18,
+    marginHorizontal: 8,
+    textDecorationLine: "underline",
+  },
+  subtitle: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  formRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 4,
+    padding: 8,
+    marginRight: 8,
+    minWidth: 180,
+  },
+  greetMsg: {
+    fontSize: 18,
+    color: "#333",
+    marginBottom: 16,
+  },
+  info: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 24,
+  },
+});

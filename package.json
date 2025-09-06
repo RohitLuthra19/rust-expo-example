@@ -1,0 +1,23 @@
+{
+  "name": "sample-pos",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev:expo": "cd expo-app && npx expo start --web",
+    "dev:tauri": "tauri dev",
+    "dev": "npm run dev:expo & npm run dev:tauri",
+    "build:expo": "cd expo-app && expo build:web",
+    "build:tauri": "tauri build",
+    "build": "npm run build:expo && npm run build:tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/plugin-opener": "^2.5.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "concurrently": "^6.5.1",
+    "typescript": "~5.8.3"
+  }
+}
