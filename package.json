@@ -10,7 +10,8 @@
   "scripts": {
     "setup": "npm install && cd expo-app && npm install",
     "dev": "npm run build:expo && electron .",
-    "dev:watch": "concurrently \"npm run expo:dev\" \"wait-on http://localhost:19006 && electron .\"",
+    "expo:dev": "cd expo-app && npx expo start",
+    "dev:watch": "concurrently \"npm run expo:dev\" \"wait-on http://localhost:8081 && electron .\"",
     "build": "npm run build:expo && npm run build:electron",
     "build:expo": "cd expo-app && npm run build:web",
     "build:electron": "electron-builder",
