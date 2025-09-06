@@ -1,50 +1,249 @@
-# Welcome to your Expo app 👋
+# Expo + Electron Desktop App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A complete setup guide for bundling Expo React Native apps into Electron desktop applications with distribution builds.
 
-## Get started
+## 📋 Prerequisites
 
-1. Install dependencies
+Before starting, ensure you have:
 
-   ```bash
-   npm install
-   ```
+- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
+- **npm** or **yarn** package manager
+- **Git** (optional, for version control)
 
-2. Start the app
+## 🚀 Quick Start
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 1. Clone or Download Project
 ```bash
-npm run reset-project
+git clone <your-repo-url>
+cd expo-electron-app
+
+# OR create from scratch
+mkdir expo-electron-app
+cd expo-electron-app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Initial Setup
+```bash
+# Install all dependencies (root + expo-app)
+npm run setup
+```
 
-## Learn more
+### 3. Development
+```bash
+# Build Expo web version and run Electron
+npm run dev
 
-To learn more about developing your project with Expo, look at the following resources:
+# OR for hot reload during development
+npm run dev:watch
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 4. Build for Distribution
+```bash
+# Create distributable packages (installers)
+npm run dist
 
-## Join the community
+# OR create portable packages (no installer)
+npm run pack
+```
 
-Join our community of developers creating universal apps.
+## 📁 Project Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+expo-electron-app/
+├── README.md
+├── package.json              # Root config with build scripts
+├── electron/                 # Electron main process
+│   ├── main.js              # Main Electron app
+│   └── preload.js           # Secure IPC bridge
+├── expo-app/                # Expo React Native app
+│   ├── package.json         # Expo dependencies
+│   ├── app.json             # Expo configuration
+│   ├── App.js               # Main React Native component
+│   └── web-build/           # Generated web assets (auto-created)
+├── dist/                    # Build output (auto-created)
+│   ├── win-unpacked/        # Windows portable
+│   ├── mac/                 # macOS app bundle
+│   ├── linux-unpacked/      # Linux portable
+│   └── *.exe, *.dmg, *.AppImage  # Installers
+└── node_modules/            # Dependencies
+```
+
+## 🔧 Available Scripts
+
+### Development Scripts
+```bash
+npm run setup        # Install all dependencies
+npm run dev         # Build Expo + run Electron (production-like)
+npm run dev:watch   # Hot reload development (requires 2 terminals)
+npm run dev:debug   # Development with detailed logging
+```
+
+### Build Scripts
+```bash
+npm run build       # Full build (Expo + Electron)
+npm run build:expo  # Build only Expo web version
+npm run pack        # Create portable apps (no installer)
+npm run dist        # Create installers for distribution
+```
+
+### Expo-specific Scripts
+```bash
+npm run expo:dev    # Start Expo dev server (for hot reload)
+cd expo-app && npm run web  # Direct Expo web development
+```
+
+## 🏗️ Build Configuration
+
+The app builds for all major platforms:
+
+### Windows
+- **Output**: `.exe` installer (NSIS)
+- **Portable**: `win-unpacked/` folder
+- **Requirements**: Works on Windows 7+
+
+### macOS
+- **Output**: `.dmg` installer
+- **Portable**: `.app` bundle in `mac/` folder
+- **Requirements**: macOS 10.10+
+
+### Linux
+- **Output**: `.AppImage` portable executable
+- **Portable**: `linux-unpacked/` folder
+- **Requirements**: Most Linux distributions
+
+## 🔨 Customization
+
+### App Information
+Edit `package.json`:
+```json
+{
+  "name": "your-app-name",
+  "version": "1.0.0",
+  "description": "Your app description",
+  "build": {
+    "appId": "com.yourcompany.yourapp",
+    "productName": "Your App Name"
+  }
+}
+```
+
+### Window Settings
+Edit `electron/main.js`:
+```javascript
+mainWindow = new BrowserWindow({
+  width: 1200,        // Change window size
+  height: 800,
+  minWidth: 800,      // Minimum window size
+  minHeight: 600,
+  // ... other options
+});
+```
+
+### Expo App
+All your React Native code goes in `expo-app/App.js`. Use standard React Native components - they work perfectly in the desktop environment.
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**1. "Cannot find module" errors**
+```bash
+# Clean install
+rm -rf node_modules expo-app/node_modules
+npm run setup
+```
+
+**2. Expo build fails**
+```bash
+cd expo-app
+npx expo install --fix
+npm run build:web
+```
+
+**3. Electron won't start**
+```bash
+# Make sure Expo built successfully first
+npm run build:expo
+npm run dev
+```
+
+**4. Build files missing**
+- Ensure `expo-app/web-build/` exists after running `npm run build:expo`
+- Check that `electron/main.js` and `electron/preload.js` exist
+
+### Development Tips
+
+**Hot Reload Setup:**
+1. Terminal 1: `npm run expo:dev` (starts Expo dev server)
+2. Terminal 2: `npm run dev:watch` (starts Electron when Expo is ready)
+
+**Production Testing:**
+- Use `npm run dev` to test the exact build that will be distributed
+- Use `npm run pack` to test the packaged app without creating installers
+
+## 📦 Distribution
+
+### Sharing Your App
+
+After running `npm run dist`, you'll find:
+
+**Windows users**: Share the `.exe` file from `dist/`
+**Mac users**: Share the `.dmg` file from `dist/`  
+**Linux users**: Share the `.AppImage` file from `dist/`
+
+### File Sizes
+- **Portable**: ~150-200MB (includes Electron runtime)
+- **Installer**: Usually smaller due to compression
+- **First run**: May be slower as OS verifies the app
+
+### Code Signing (Optional)
+For production apps, consider code signing:
+- **Windows**: Get a code signing certificate
+- **macOS**: Join Apple Developer Program
+- **Linux**: Generally not required
+
+Add to `package.json`:
+```json
+"build": {
+  "win": {
+    "certificateFile": "path/to/certificate.p12",
+    "certificatePassword": "password"
+  },
+  "mac": {
+    "identity": "Developer ID Application: Your Name"
+  }
+}
+```
+
+## 🔄 Updating Your App
+
+1. Update your Expo app in `expo-app/App.js`
+2. Increment version in `package.json`
+3. Build and distribute: `npm run dist`
+
+For automatic updates, consider integrating `electron-updater`.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes in `expo-app/` for UI or `electron/` for desktop features
+4. Test with `npm run dev`
+5. Build with `npm run dist` to ensure it packages correctly
+6. Submit a pull request
+
+## 📄 License
+
+[Add your license here]
+
+## 🆘 Support
+
+For issues:
+1. Check the troubleshooting section above
+2. Ensure all prerequisites are installed
+3. Try a clean install: `rm -rf node_modules && npm run setup`
+4. Check [Electron docs](https://electronjs.org/docs) and [Expo docs](https://docs.expo.dev/)
+
+---
+
+**Happy building!** 🚀

@@ -20,6 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["electron/**/*.cjs", "expo-app/**/*.ts"],
+  "include": ["electron/**/*.cjs", "expo-app/**/*.ts", "electron/preload.js", "electron/main.js"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,115 +1,200 @@
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, Image, StyleSheet, ScrollView, Linking, TouchableOpacity } from "react-native";
-
-
-const isElectron = typeof window !== "undefined" && !!window.electronAPI;
-
-async function openExternal(url: string) {
-  
-  if (isElectron && window.electronAPI && window.electronAPI.openExternal) {
-    window.electronAPI.openExternal(url);
-  } else {
-    Linking.openURL(url);
+// Extend the window.electronAPI type to include showDialog
+declare global {
+  interface Window {
+    electronAPI?: {
+      greet: (name: string) => Promise<string>;
+      openExternal: (url: string) => void;
+      showDialog?: (message: string) => Promise<string>;
+    };
   }
 }
 
-export default function Hello() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+export default function App() {
+  const [count, setCount] = useState(0);
+  const [message, setMessage] = useState('Hello from Expo + Electron!');
+  const [isElectron, setIsElectron] = useState(false);
 
-  async function greet() {
-    
-    if (isElectron && window.electronAPI && window.electronAPI.greet) {
-      const msg = await window.electronAPI.greet(name);
-      setGreetMsg(msg);
+  useEffect(() => {
+    // Check if running in Electron
+    setIsElectron(window.electronAPI !== undefined);
+  }, []);
+
+  const handleElectronAction = async () => {
+    if (window.electronAPI) {
+      try {
+        if (window.electronAPI?.showDialog) {
+          const result = await window.electronAPI.showDialog('Hello from Expo!');
+          console.log('Dialog result:', result);
+        } else {
+          console.warn('showDialog is not available on electronAPI');
+        }
+      } catch (error) {
+        console.error('Error calling Electron API:', error);
+      }
     } else {
-      setGreetMsg("Electron API is only available in the desktop app.");
+      Alert.alert('Info', 'This feature only works in Electron desktop app');
     }
-  }
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Welcome to Expo + Electron</Text>
-      <View style={styles.row}>
-        <TouchableOpacity onPress={() =>  openExternal("https://expo.dev")}>
-          <Image source={require("../assets/images/expo-logo.png")} style={styles.logo} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => openExternal("https://electronjs.org")}>
-          <Image source={require("../assets/images/electron-logo.svg")} style={styles.logo} />
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <StatusBar style="auto" />
+      
+      <Text style={styles.title}>Expo + Electron Desktop App</Text>
+      
+      <View style={styles.card}>
+        <Text style={styles.subtitle}>Counter Example</Text>
+        <Text style={styles.counter}>{count}</Text>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity 
+            style={[styles.button, styles.decrementButton]} 
+            onPress={() => setCount(count - 1)}
+          >
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, styles.incrementButton]} 
+            onPress={() => setCount(count + 1)}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <Text style={styles.subtitle}>Click on the Expo and Electron names to learn more.</Text>
-      <View style={styles.formRow}>
+
+      <View style={styles.card}>
+        <Text style={styles.subtitle}>Message Input</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter a name..."
-          value={name}
-          onChangeText={setName}
+          value={message}
+          onChangeText={setMessage}
+          placeholder="Enter a message..."
         />
-        <Button title="Greet" onPress={greet} />
+        <Text style={styles.message}>{message}</Text>
       </View>
-      <Text style={styles.greetMsg}>{greetMsg}</Text>
-    </ScrollView>
+
+      {isElectron && (
+        <View style={styles.card}>
+          <Text style={styles.subtitle}>Electron Integration</Text>
+          <TouchableOpacity 
+            style={[styles.button, styles.electronButton]} 
+            onPress={handleElectronAction}
+          >
+            <Text style={styles.buttonText}>Show Native Dialog</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={styles.info}>
+        <Text style={styles.infoText}>
+          This Expo app is running inside an Electron desktop container!
+        </Text>
+        <Text style={styles.infoText}>
+          Platform: {navigator.platform}
+        </Text>
+        <Text style={styles.infoText}>
+          Electron: {isElectron ? 'Yes' : 'No'}
+        </Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#fff",
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 16,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    color: '#333',
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    margin: 8,
-  },
-  link: {
-    color: "#007aff",
-    fontWeight: "bold",
-    fontSize: 18,
-    marginHorizontal: 8,
-    textDecorationLine: "underline",
+  card: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   subtitle: {
-    fontSize: 16,
-    marginBottom: 16,
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: '#555',
+    textAlign: 'center',
   },
-  formRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
+  counter: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#007AFF',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    minWidth: 60,
+  },
+  incrementButton: {
+    backgroundColor: '#28a745',
+  },
+  decrementButton: {
+    backgroundColor: '#dc3545',
+  },
+  electronButton: {
+    backgroundColor: '#6f42c1',
+    alignSelf: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-    marginRight: 8,
-    minWidth: 180,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
   },
-  greetMsg: {
-    fontSize: 18,
-    color: "#333",
-    marginBottom: 16,
+  message: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   info: {
+    backgroundColor: '#e8f4fd',
+    padding: 15,
+    borderRadius: 8,
+    width: '100%',
+    maxWidth: 400,
+  },
+  infoText: {
     fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 24,
+    color: '#0066cc',
+    textAlign: 'center',
+    marginBottom: 5,
   },
 });

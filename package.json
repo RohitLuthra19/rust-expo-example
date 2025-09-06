@@ -1,26 +1,50 @@
 {
   "name": "sample-pos",
-  "description": "Expo web + Electron desktop app",
-  "author": "Rohit Luthra",
-  "email": "rohit.luthra19@gmail.com",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "main": "electron/main.cjs",
+  "version": "1.0.0",
+  "description": "Expo app bundled with Electron for desktop",
+  "main": "electron/main.js",
+  "author": {
+    "name": "Rohit Luthra",
+    "email": "rohit.luthra19@example.com"
+  },
   "scripts": {
-    "dev:expo": "cd expo-app && npx expo start --web",
-    "dev:electron": "NODE_ENV=development EXPO_DEV_PORT=8081 electron electron/main.cjs",
-    "dev": "concurrently \"npm run dev:expo\" \"sleep 5 && npm run dev:electron\"",
-    "prod:electron": "electron electron/main.cjs",
-    "prod": "npm run build:expo && npm run prod:electron",
-    "build:expo": "cd expo-app && npx expo export",
+    "setup": "npm install && cd expo-app && npm install",
+    "dev": "npm run build:expo && electron .",
+    "dev:watch": "concurrently \"npm run expo:dev\" \"wait-on http://localhost:19006 && electron .\"",
+    "build": "npm run build:expo && npm run build:electron",
+    "build:expo": "cd expo-app && npm run build:web",
     "build:electron": "electron-builder",
-    "build": "npm run build:expo && npm run build:electron"
+    "pack": "npm run build:expo && electron-builder --dir",
+    "dist": "npm run build:expo && electron-builder"
+  },
+  "build": {
+    "appId": "com.shr.sample-pos",
+    "productName": "Expo Electron App",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "expo-app/web-build/**/*",
+      "node_modules/**/*",
+      "!expo-app/node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "dependencies": {
+    "express": "^4.21.2"
   },
   "devDependencies": {
-    "concurrently": "^6.5.1",
-    "electron": "^38.0.0",
-    "typescript": "~5.8.3",
-    "electron-builder": "^24.6.0"
+    "electron": "^22.0.0",
+    "electron-builder": "^24.0.0"
   }
 }
