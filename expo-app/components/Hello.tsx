@@ -3,13 +3,12 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Button, Image, StyleSheet, ScrollView, Linking, TouchableOpacity } from "react-native";
 
 
-//const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
+const isElectron = typeof window !== "undefined" && !!window.electronAPI;
 
 async function openExternal(url: string) {
-  if (isTauri) {
-    const tauri = (window as any).__TAURI__;
-    console.log("Opening URL in Tauri:", tauri.opener.openUrl(url));
+  
+  if (isElectron && window.electronAPI && window.electronAPI.openExternal) {
+    window.electronAPI.openExternal(url);
   } else {
     Linking.openURL(url);
   }
@@ -20,30 +19,27 @@ export default function Hello() {
   const [name, setName] = useState("");
 
   async function greet() {
-    if (isTauri) {
-        const tauri = (window as any).__TAURI__;
-      if (tauri && tauri.core.invoke) {
-        setGreetMsg(await tauri.core.invoke("greet", { name }));
-      } else {
-        setGreetMsg("Tauri API not available.");
-      }
+    
+    if (isElectron && window.electronAPI && window.electronAPI.greet) {
+      const msg = await window.electronAPI.greet(name);
+      setGreetMsg(msg);
     } else {
-      setGreetMsg("Tauri API is only available in the desktop app.");
+      setGreetMsg("Electron API is only available in the desktop app.");
     }
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Welcome to Expo + Tauri</Text>
+      <Text style={styles.title}>Welcome to Expo + Electron</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={() =>  openExternal("https://expo.dev")}>
-          <Image source={require("@/assets/images/expo-logo.png")} style={styles.logo} />
+          <Image source={require("../assets/images/expo-logo.png")} style={styles.logo} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => openExternal("https://tauri.app")}>
-          <Image source={require("@/assets/images/tauri-logo.svg")} style={styles.logo} />
+        <TouchableOpacity onPress={() => openExternal("https://electronjs.org")}>
+          <Image source={require("../assets/images/electron-logo.svg")} style={styles.logo} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.subtitle}>Click on the Expo and Tauri names to learn more.</Text>
+      <Text style={styles.subtitle}>Click on the Expo and Electron names to learn more.</Text>
       <View style={styles.formRow}>
         <TextInput
           style={styles.input}
